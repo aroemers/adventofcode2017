@@ -64,3 +64,23 @@
            [3 8 6 5]]
           sut/division)
          9)))
+
+
+;;; Day 4 - High-Entropy Passphrases
+
+(deftest no-doubles-test
+  (is (= (sut/no-doubles [["aa" "bb" "cc" "dd" "ee"]
+                          ["aa" "bb" "cc" "dd" "aa"]
+                          ["aa" "bb" "cc" "dd" "aaa"]])
+         [["aa" "bb" "cc" "dd" "ee"]
+          ["aa" "bb" "cc" "dd" "aaa"]])))
+
+(deftest no-anagrams-test
+  (is (= (sut/no-anagrams [["abcde" "fghij"]
+                           ["abcde" "xyz" "ecdab"]
+                           ["a" "ab" "abc" "abd" "abf" "abj"]
+                           ["iiii" "oiii" "ooii" "oooi" "oooo"]
+                           ["oiii" "ioii" "iioi" "iiio"]])
+         [["abcde" "fghij"]
+          ["a" "ab" "abc" "abd" "abf" "abj"]
+          ["iiii" "oiii" "ooii" "oooi" "oooo"]])))

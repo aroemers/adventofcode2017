@@ -43,11 +43,10 @@
 
 ;;; Day 3 - Spiral Memory
 
-(defn squares
-  []
-  (letfn [(squares* [n]
-            (cons (* n n) (lazy-seq (squares* (inc n)))))]
-    (squares* 1)))
+(def squares
+  ((fn squares* [n]
+     (cons (* n n) (lazy-seq (squares* (inc n)))))
+   1))
 
 (defn between
   [n coll]
@@ -59,7 +58,7 @@
 
 (defn spiral-memory
   [n]
-  (let [[x y]  (between n (filter odd? (squares)))
+  (let [[x y]  (between n (filter odd? squares))
         length (long (Math/sqrt y))
         ring   (quot length 2)
         pos    (rem (- n x) (dec length))
@@ -97,3 +96,22 @@
                (conj vals val)
                (rest lookups))
         vals))))
+
+
+;;; Day 4 - High-Entropy Passphrases
+
+(defn no-doubles
+  [phrases]
+  (filter #(apply distinct? %) phrases))
+
+(defn no-anagrams
+  [phrases]
+  (filter #(= (count %) (count (set (map sort %)))) phrases))
+
+(defn high-entropy
+  [phrases]
+  (-> phrases no-doubles count))
+
+(defn added-security
+  [phrases]
+  (-> phrases no-doubles no-anagrams count))
