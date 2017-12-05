@@ -84,3 +84,10 @@
          [["abcde" "fghij"]
           ["a" "ab" "abc" "abd" "abf" "abj"]
           ["iiii" "oiii" "ooii" "oooi" "oooo"]])))
+
+
+;;; Day 5 - A Maze of Twisty Trampolines, All Alike
+
+(deftest jumps*-test
+  (is (= (sut/jumps-inc   [0 3 0 1 -3])  5))
+  (is (= (sut/jumps-three [0 3 0 1 -3]) 10)))

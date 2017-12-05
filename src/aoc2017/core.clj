@@ -106,7 +106,7 @@
 
 (defn no-anagrams
   [phrases]
-  (filter #(= (count %) (count (set (map sort %)))) phrases))
+  (filter #(apply distinct? (map sort %)) phrases))
 
 (defn high-entropy
   [phrases]
@@ -114,4 +114,29 @@
 
 (defn added-security
   [phrases]
-  (-> phrases no-doubles no-anagrams count))
+  (-> phrases no-anagrams count))
+
+
+
+;;; Day 5 - A Maze of Twisty Trampolines, All Alike
+
+(defn jumps*
+  [numbers update-fn]
+  (let [array      (long-array numbers)
+        last-index (dec (count array))]
+    (reduce (fn [index jumps]
+              (if (<= 0 index last-index)
+                (let [jump (aget array index)]
+                  (aset-long array index (update-fn jump))
+                  (+ index jump))
+                (reduced jumps)))
+            0
+            (range))))
+
+(defn jumps-inc
+  [numbers]
+  (jumps* numbers inc))
+
+(defn jumps-three
+  [numbers]
+  (jumps* numbers #(if (< % 3) (inc %) (dec %))))
