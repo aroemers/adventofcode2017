@@ -1,4 +1,6 @@
-(ns aoc2017.core)
+(ns aoc2017.core
+  (:require [clojure.set :as set]
+            [clojure.walk :as walk]))
 
 ;;; Day 1 - Inverse Captcha
 
@@ -176,3 +178,63 @@
       {:total-steps (count ordered)
        :cycle-steps (count (drop-while (partial not= current) ordered))}
       (recur (conj previous current) (reallocate current) (conj ordered current)))))
+
+
+;;; Day 7
+
+(defn parse-line
+  [line]
+  (let [[_ node weight _ children] (re-matches #"(.+) \((\d+)\)( -\> (.+))?" line)]
+    {:node     node
+     :weight   (Long/parseLong weight)
+     :children (when children (set (re-seq #"\w+" children)))}))
+
+(defn parse-lines
+  [lines]
+  (map parse-line lines))
+
+(defn find-root
+  [parsed]
+  (let [children (set (mapcat :children parsed))
+        nodes    (set (map :node parsed))]
+    (first (set/difference nodes children))))
+
+(defn make-graph
+  [parsed]
+  (let [root    (find-root parsed)
+        grouped (group-by :node parsed)
+        fill-children (fn fill-children [node]
+                        (assoc node :children (map fill-children (map first (vals (select-keys grouped (:children node)))))))]
+    (fill-children (first (get grouped root)))))
+
+(defn weigher
+  [node]
+  (if (and (map? node) (:weight node))
+    (let [child-weights (map :sum (:children node))]
+      (merge node {:sum       (reduce + (:weight node) child-weights)
+                   :balanced? (if (seq child-weights)
+                                (apply = child-weights)
+                                true)}))
+    node))
+
+(defn find-unbalance
+  [parsed]
+  (let [found  (promise)
+        finder (fn [node]
+                 (when (and (map? node) (not (:balanced? node)))
+                   (deliver found (map #(dissoc % :children) (:children node))))
+                 node)]
+    (->> parsed make-graph (walk/postwalk weigher) (walk/postwalk finder))
+    (let [nodes        @found
+          grouped      (group-by :sum nodes)
+          group-1      (val (first grouped))
+          group-2      (val (second grouped))
+          group-1-node (first group-1)
+          group-2-node (first group-2)]
+      (if (= (count group-1) 1)
+        (- (:weight group-1-node)
+           (- (:sum group-1-node)
+              (:sum group-2-node)))
+        (- (:weight group-2-node)
+           (- (:sum group-2-node)
+              (:sum group-1-node)))))))
