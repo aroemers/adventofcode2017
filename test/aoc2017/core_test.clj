@@ -91,3 +91,17 @@
 (deftest jumps*-test
   (is (= (sut/jumps-inc   [0 3 0 1 -3])  5))
   (is (= (sut/jumps-three [0 3 0 1 -3]) 10)))
+
+
+;;; Day 6 - Memory Reallocation
+
+(deftest max-index-test
+  (is (= (sut/max-index [0 2 7 0]) [7 2])))
+
+(deftest reallocate-test
+  (is (= (sut/reallocate [0 2 7 0]) [2 4 1 2])))
+
+(deftest reallocates-test
+  (is (= (sut/reallocates [0 2 7 0])
+         {:total-steps 5
+          :cycle-steps 4})))

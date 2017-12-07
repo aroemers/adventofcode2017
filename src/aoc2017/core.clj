@@ -140,3 +140,39 @@
 (defn jumps-three
   [numbers]
   (jumps* numbers #(if (< % 3) (inc %) (dec %))))
+
+
+
+;;; Day 6 - Memory Reallocation
+
+(defn max-index
+  [numbers]
+  (reduce (fn [current i]
+            (let [n (get numbers i)]
+              (if (< (first current) n)
+                [n i]
+                current)))
+          [-1 -1]
+          (range 0 (count numbers))))
+
+(defn reallocate
+  [numbers]
+  (let [[number index] (max-index numbers)]
+    (loop [numbers (assoc numbers index 0)
+           index   (mod (inc index) (count numbers))
+           number  number]
+      (if (< 0 number)
+        (recur (update numbers index inc)
+               (mod (inc index) (count numbers))
+               (dec number))
+        numbers))))
+
+(defn reallocates
+  [numbers]
+  (loop [previous #{}
+         current  numbers
+         ordered  []]
+    (if (get previous current)
+      {:total-steps (count ordered)
+       :cycle-steps (count (drop-while (partial not= current) ordered))}
+      (recur (conj previous current) (reallocate current) (conj ordered current)))))
