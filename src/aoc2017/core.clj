@@ -1,6 +1,7 @@
 (ns aoc2017.core
   (:require [clojure.set :as set]
-            [clojure.walk :as walk]))
+            [clojure.walk :as walk]
+            [clojure.string :as str]))
 
 ;;; Day 1 - Inverse Captcha
 
@@ -180,7 +181,7 @@
       (recur (conj previous current) (reallocate current) (conj ordered current)))))
 
 
-;;; Day 7
+;;; Day 7 - Recursive Circus
 
 (defn parse-line
   [line]
@@ -201,13 +202,14 @@
 
 (defn make-graph
   [parsed]
-  (let [root    (find-root parsed)
-        grouped (group-by :node parsed)
+  (let [root          (find-root parsed)
+        grouped       (group-by :node parsed)
         fill-children (fn fill-children [node]
-                        (assoc node :children (map fill-children (map first (vals (select-keys grouped (:children node)))))))]
+                        (let [child-nodes (->> node :children (select-keys grouped) vals (map first))]
+                          (assoc node :children (map fill-children child-nodes))))]
     (fill-children (first (get grouped root)))))
 
-(defn weigher
+(defn weight-walker
   [node]
   (if (and (map? node) (:weight node))
     (let [child-weights (map :sum (:children node))]
@@ -219,22 +221,43 @@
 
 (defn find-unbalance
   [parsed]
-  (let [found  (promise)
-        finder (fn [node]
-                 (when (and (map? node) (not (:balanced? node)))
-                   (deliver found (map #(dissoc % :children) (:children node))))
-                 node)]
-    (->> parsed make-graph (walk/postwalk weigher) (walk/postwalk finder))
-    (let [nodes        @found
-          grouped      (group-by :sum nodes)
-          group-1      (val (first grouped))
-          group-2      (val (second grouped))
-          group-1-node (first group-1)
-          group-2-node (first group-2)]
-      (if (= (count group-1) 1)
-        (- (:weight group-1-node)
-           (- (:sum group-1-node)
-              (:sum group-2-node)))
-        (- (:weight group-2-node)
-           (- (:sum group-2-node)
-              (:sum group-1-node)))))))
+  (let [found       (promise)
+        find-walker (fn [node]
+                      (when (and (map? node) (not (:balanced? node)))
+                        (deliver found (map #(dissoc % :children) (:children node))))
+                      node)]
+    (->> parsed make-graph (walk/postwalk weight-walker) (walk/postwalk find-walker))
+    (let [groups    (->> found deref (group-by :sum) vals (sort-by count))
+          odd-node  (ffirst groups)
+          good-node (first (second groups))]
+      (- (:weight odd-node)
+         (- (:sum odd-node)
+            (:sum good-node))))))
+
+
+;;; Day 8 - I Heard You Like Registers
+
+(defn instruction
+  [registers line]
+  (let [[_ register operation value test-register test-operation test-value]
+        (re-matches #"(\w+) (\w+) (-?\d+) if (\w+) (\S+) (-?\d+)" line)]
+    (if ((eval (symbol (case test-operation "==" "=" "!=" "not=" test-operation)))
+         (registers test-register 0)
+         (Long/parseLong test-value))
+      (let [new-value ((case operation "inc" + "dec" -) (registers register 0) (Long/parseLong value))]
+        (assoc registers
+               register new-value
+               :max (max (:max registers) new-value)))
+      registers)))
+
+(defn instructions
+  [input]
+  (reduce instruction {:max Long/MIN_VALUE} (str/split-lines input)))
+
+(defn max-register
+  [input]
+  (-> input instructions (dissoc :max) vals (->> (apply max))))
+
+(defn max-alltime
+  [input]
+  (->> input instructions :max))

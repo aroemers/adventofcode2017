@@ -1,6 +1,7 @@
 (ns aoc2017.core-test
   (:require [clojure.test :refer (deftest is are)]
-            [aoc2017.core :as sut]))
+            [aoc2017.core :as sut]
+            [clojure.walk :as walk]))
 
 ;;; Day 1 - Inverse Captcha
 
@@ -105,3 +106,82 @@
   (is (= (sut/reallocates [0 2 7 0])
          {:total-steps 5
           :cycle-steps 4})))
+
+
+;;; Day 7 - Recursive Circus
+
+(def input-7 [{:node "pbga", :weight 66, :children nil}
+              {:node "xhth", :weight 57, :children nil}
+              {:node "ebii", :weight 61, :children nil}
+              {:node "havc", :weight 66, :children nil}
+              {:node "ktlj", :weight 57, :children nil}
+              {:node "fwft", :weight 72, :children #{"cntj" "xhth" "ktlj"}}
+              {:node "qoyq", :weight 66, :children nil}
+              {:node "padx", :weight 45, :children #{"qoyq" "havc" "pbga"}}
+              {:node "tknk", :weight 41, :children #{"ugml" "padx" "fwft"}}
+              {:node "jptl", :weight 61, :children nil}
+              {:node "ugml", :weight 68, :children #{"ebii" "jptl" "gyxo"}}
+              {:node "gyxo", :weight 61, :children nil}
+              {:node "cntj", :weight 57, :children nil}])
+
+(deftest parse-line-test
+  (is (= (sut/parse-line "foobar (38)")
+         {:node     "foobar"
+          :weight   38
+          :children nil}))
+  (is (= (sut/parse-line "foobar (38) -> alice, bob")
+         {:node     "foobar"
+          :weight   38
+          :children #{"alice" "bob"}})))
+
+(deftest find-root-test
+  (is (= (sut/find-root input-7) "tknk")))
+
+(deftest make-graph-test
+  (is (= (sut/make-graph input-7)
+         {:node "tknk", :weight 41,
+          :children [{:node "ugml", :weight 68,
+                      :children [{:node "ebii", :weight 61, :children ()}
+                                 {:node "jptl", :weight 61, :children ()}
+                                 {:node "gyxo", :weight 61, :children ()}]}
+                     {:node "padx", :weight 45,
+                      :children [{:node "qoyq", :weight 66, :children ()}
+                                 {:node "havc", :weight 66, :children ()}
+                                 {:node "pbga", :weight 66, :children ()}]}
+                     {:node "fwft", :weight 72,
+                      :children [{:node "cntj", :weight 57, :children ()}
+                                 {:node "xhth", :weight 57, :children ()}
+                                 {:node "ktlj", :weight 57, :children ()}]}]})))
+
+(deftest weight-walker-test
+  (is (= (->> input-7 sut/make-graph (walk/postwalk sut/weight-walker))
+         {:node "tknk", :weight 41, :sum 778, :balanced? false
+          :children [{:node "ugml", :weight 68, :sum 251, :balanced? true
+                      :children [{:node "ebii", :weight 61, :children (), :sum 61, :balanced? true}
+                                 {:node "jptl", :weight 61, :children (), :sum 61, :balanced? true}
+                                 {:node "gyxo", :weight 61, :children (), :sum 61, :balanced? true}]}
+                     {:node "padx", :weight 45, :sum 243, :balanced? true
+                      :children [{:node "qoyq", :weight 66, :children (), :sum 66, :balanced? true}
+                                 {:node "havc", :weight 66, :children (), :sum 66, :balanced? true}
+                                 {:node "pbga", :weight 66, :children (), :sum 66, :balanced? true}]}
+                     {:node "fwft", :weight 72, :sum 243, :balanced? true
+                      :children [{:node "cntj", :weight 57, :children (), :sum 57, :balanced? true}
+                                 {:node "xhth", :weight 57, :children (), :sum 57, :balanced? true}
+                                 {:node "ktlj", :weight 57, :children (), :sum 57, :balanced? true}]}]})))
+
+(deftest find-unbalance-test
+  (is (= (sut/find-unbalance input-7) 60)))
+
+
+;;; Day 8 - I Heard You Like Registers
+
+(def input-8 "b inc 5 if a > 1
+a inc 1 if b < 5
+c dec -10 if a >= 1
+c inc -20 if c == 10")
+
+(deftest max-register-test
+  (is (= (sut/max-register input-8) 1)))
+
+(deftest max-alltime-time
+  (is (= (sut/max-alltime input-8) 10)))
