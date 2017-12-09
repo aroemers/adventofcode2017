@@ -261,3 +261,49 @@
 (defn max-alltime
   [input]
   (->> input instructions :max))
+
+
+;;; Day 9 - Stream Processing
+
+(defn groups
+  [input]
+  (loop [groups  []
+         depth   1
+         input   input
+         ignore  false
+         garbage false]
+    (if-let [c (first input)]
+      (cond ignore
+            (recur groups depth (rest input) false garbage)
+
+            (= c \!)
+            (recur groups depth (rest input) true garbage)
+
+            garbage
+            (if (= c \>)
+              (recur groups depth (rest input) false false)
+              (recur groups depth (rest input) false true))
+
+            (= c \<)
+            (recur groups depth (rest input) false true)
+
+            (= c \{)
+            (recur (conj groups depth) (inc depth) (rest input) false false)
+
+            (= c \})
+            (recur groups (dec depth) (rest input) false false)
+
+            :otherwise
+            (recur groups depth (rest input) false false))
+      groups)))
+
+(defn groups-score
+  [input]
+  (-> input groups sum))
+
+(defn garbage-count
+  [input]
+  (->> (str/replace input #"!." "")
+       (re-seq #"\<[^\>]*")
+       (map (comp dec count))
+       (sum)))

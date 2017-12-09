@@ -185,3 +185,38 @@ c inc -20 if c == 10")
 
 (deftest max-alltime-time
   (is (= (sut/max-alltime input-8) 10)))
+
+
+;;; Day 9 - Stream Processing
+
+(deftest groups-test
+  (are [input result] (= (sut/groups input) result)
+    "{}"                        [1]
+    "{{{}}}"                    [1 2 3]
+    "{{},{}}"                   [1 2 2]
+    "{{{},{},{{}}}}"            [1 2 3 3 3 4]
+    "{<{},{},{{}}>}"            [1]
+    "{<a>,<a>,<a>,<a>}"         [1]
+    "{{<a>},{<a>},{<a>},{<a>}}" [1 2 2 2 2]
+    "{{<!>},{<!>},{<!>},{<a>}}" [1 2]))
+
+(deftest groups-score-test
+  (are [input result] (= (sut/groups-score input) result)
+    "{}"                        1
+    "{{{}}}"                    6
+    "{{},{}}"                   5
+    "{{{},{},{{}}}}"            16
+    "{<{},{},{{}}>}"            1
+    "{<a>,<a>,<a>,<a>}"         1
+    "{{<a>},{<a>},{<a>},{<a>}}" 9
+    "{{<!>},{<!>},{<!>},{<a>}}" 3))
+
+(deftest garbage-count-test
+  (are [input result] (= (sut/garbage-count input) result)
+    "<>"                  0
+    "<random characters>" 17
+    "<<<<>"               3
+    "<{!>}>"              2
+    "<!!>"                0
+    "<!!!>>"              0
+    "<{o\"i!a,<{i<a>"     10))
