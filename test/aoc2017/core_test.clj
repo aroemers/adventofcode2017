@@ -220,3 +220,19 @@ c inc -20 if c == 10")
     "<!!>"                0
     "<!!!>>"              0
     "<{o\"i!a,<{i<a>"     10))
+
+
+;;; Day 10 - Knot Hash
+
+(deftest knot-hash-test
+  (is (= (sut/knot-hash 5 1 [3 4 1 5]) [3 4 2 1 0])))
+
+(deftest knot-hash-score-test
+  (is (= (sut/knot-hash-score 5 [3 4 1 5]) 12)))
+
+(deftest knot-hash-hex-test
+  (are [input result] (= (sut/knot-hash-hex input) result)
+    ""         "a2582a3a0e66e6e86e3812dcb672a272"
+    "AoC 2017" "33efeb34ea91902bb2f59c9920caa6cd"
+    "1,2,3"    "3efbe78a8d82f29979031a4aa0b16a9d"
+    "1,2,4"    "63960835bcdc130f0b66d7ff4f6a5a8e"))

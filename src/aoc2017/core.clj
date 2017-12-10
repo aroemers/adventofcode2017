@@ -307,3 +307,34 @@
        (re-seq #"\<[^\>]*")
        (map (comp dec count))
        (sum)))
+
+
+;;; Day 10 - Knot Hash
+
+(defn knot-hash
+  [size rounds lengths]
+  (let [numbers (int-array (range size))]
+    (reduce (fn [[index skip] length]
+              (let [reversed (reverse (take length (drop index (cycle numbers))))]
+                (doseq [i (range length)]
+                  (aset-int numbers (mod (+ index i) size) (nth reversed i))))
+              [(mod (+ index length skip) size) (inc skip)])
+            [0 0]
+            (take (* (count lengths) rounds) (cycle lengths)))
+    (seq numbers)))
+
+(defn knot-hash-score
+  [size lengths]
+  (let [[x y] (knot-hash size 1 lengths)]
+    (* x y)))
+
+(defn knot-hash-hex
+  [input]
+  (as-> input X
+    (map byte X)
+    (concat X [17 31 73 47 23])
+    (knot-hash 256 64 X)
+    (partition 16 X)
+    (map #(reduce bit-xor %) X)
+    (map #(format "%02x" %) X)
+    (apply str X)))
