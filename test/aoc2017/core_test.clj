@@ -253,3 +253,31 @@ c inc -20 if c == 10")
     ["ne" "ne" "sw" "sw"]      2
     ["ne" "ne" "s" "s"]        2
     ["se" "sw" "se" "sw" "sw"] 3))
+
+
+;;; Day 12 - Digital Plumber
+
+(deftest pipe-line-test
+  (is (= (sut/pipe-line "12 <-> 0, 3, 40")
+         {"12" #{"0" "3" "40"}})))
+
+(deftest pipe-lines-test
+  (is (= (sut/pipe-lines "12 <-> 0, 3, 40\n0 <-> 2")
+         {"12" #{"0" "3" "40"}
+          "0"  #{"2"}})))
+
+(def input-12 "0 <-> 2
+1 <-> 1
+2 <-> 0, 3, 4
+3 <-> 2, 4
+4 <-> 2, 3, 6
+5 <-> 6
+6 <-> 4, 5")
+
+(deftest pipe-group-test
+  (is (= (sut/pipe-group (sut/pipe-lines input-12) "0")
+         #{"3" "4" "5" "6" "0" "2"})))
+
+(deftest pipe-groups-test
+  (is (= (sut/pipe-groups (sut/pipe-lines input-12))
+         #{#{"3" "4" "5" "6" "0" "2"} #{"1"}})))

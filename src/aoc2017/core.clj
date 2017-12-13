@@ -384,3 +384,34 @@
        (reductions #(optimize (conj %1 %2)) [])
        (map count)
        (apply max)))
+
+
+;;; Day 12 - Digital Plumber
+
+(defn pipe-line
+  [line]
+  (let [[_ node nodes] (re-matches #"^(\d+) \<-\> (.*)$" line)]
+    {node (set (re-seq #"\d+" nodes))}))
+
+(defn pipe-lines
+  [input]
+  (reduce #(merge %1 (pipe-line %2)) {} (str/split-lines input)))
+
+(defn pipe-group
+  [pipes start-node]
+  (loop [seen #{}
+         see  #{start-node}]
+    (if-let [node (first see)]
+      (recur (conj seen node)
+             (set/union (disj see node) (set/difference (get pipes node) seen)))
+      seen)))
+
+(defn pipe-groups
+  [pipes]
+  (loop [pipes  pipes
+         groups #{}]
+    (if-let [start-node (first (keys pipes))]
+      (let [group (pipe-group pipes start-node)]
+        (recur (apply dissoc pipes group)
+               (conj groups group)))
+      groups)))
