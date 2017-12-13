@@ -281,3 +281,26 @@ c inc -20 if c == 10")
 (deftest pipe-groups-test
   (is (= (sut/pipe-groups (sut/pipe-lines input-12))
          #{#{"3" "4" "5" "6" "0" "2"} #{"1"}})))
+
+
+;;; Day 13 - Packet Scanners
+
+(def input-13 [3 2 0 0 4 0 4])
+
+(deftest scanner-pos-test
+  (are [size picosecond expected] (= (sut/scanner-pos size picosecond) expected)
+    4 0 0
+    4 1 1
+    4 2 2
+    4 3 3
+    4 4 2
+    4 5 1
+    4 6 0
+    4 7 1))
+
+(deftest severity-test
+  (is (= (sut/severity input-13 0) 24))
+  (is (= (sut/severity input-13 1) :caught)))
+
+(deftest uncaught-test
+  (is (= (sut/uncaught input-13) 10)))

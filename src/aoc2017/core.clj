@@ -415,3 +415,33 @@
         (recur (apply dissoc pipes group)
                (conj groups group)))
       groups)))
+
+
+;;; Day 13 - Packet Scanners
+
+(defn scanner-pos
+  [size picosecond]
+  (nth (concat (range size)
+               (range (- size 2) 0 -1))
+       (mod picosecond
+            (+ size size -2))))
+
+(defn severity
+  [layers delay]
+  (reduce (fn [acc index]
+            (let [layer (layers index)]
+              (if (and (pos? layer)
+                       (= 0 (scanner-pos layer (+ index delay))))
+                (if (zero? delay)
+                  (+ acc (* layer index))
+                  (reduced :caught))
+                acc)))
+          0
+          (range (count layers))))
+
+(defn uncaught
+  [layers]
+  (loop [delay 0]
+    (if (= (severity layers delay) 0)
+      delay
+      (recur (inc delay)))))
