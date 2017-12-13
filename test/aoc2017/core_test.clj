@@ -236,3 +236,20 @@ c inc -20 if c == 10")
     "AoC 2017" "33efeb34ea91902bb2f59c9920caa6cd"
     "1,2,3"    "3efbe78a8d82f29979031a4aa0b16a9d"
     "1,2,4"    "63960835bcdc130f0b66d7ff4f6a5a8e"))
+
+
+;;; Day 11 - Hex Ed
+
+(deftest optimize-test
+  (are [directions result] (= (sut/optimize directions) result)
+    ["ne" "ne" "ne"]           ["ne" "ne" "ne"]
+    ["ne" "ne" "sw" "sw"]      []
+    ["ne" "ne" "s" "s"]        ["se" "se"]
+    ["se" "sw" "se" "sw" "sw"] ["s" "s" "sw"]))
+
+(deftest longest-distance-test
+  (are [directions result] (= (sut/longest-distance directions) result)
+    ["ne" "ne" "ne"]           3
+    ["ne" "ne" "sw" "sw"]      2
+    ["ne" "ne" "s" "s"]        2
+    ["se" "sw" "se" "sw" "sw"] 3))

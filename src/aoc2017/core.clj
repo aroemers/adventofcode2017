@@ -338,3 +338,49 @@
     (map #(reduce bit-xor %) X)
     (map #(format "%02x" %) X)
     (apply str X)))
+
+
+
+;;; Day 11 - Hex Ed
+
+(def directions
+  ["n" "ne" "se" "s" "sw" "nw"])
+
+(def optimizations
+  (reduce (fn [acc i]
+            (conj acc
+                  [(directions i) (directions (mod (+ i 3) 6)) ""]
+                  [(directions i) (directions (mod (+ i 2) 6)) (directions (mod (+ i 1) 6))]
+                  [(directions i) (directions (mod (+ i 4) 6)) (directions (mod (+ i 5) 6))]))
+          []
+          (range 6)))
+
+(defn index-of
+  [coll elem]
+  (first (keep-indexed (fn [i e] (when (= e elem) i)) coll)))
+
+(defn optimize*
+  [directions]
+  (reduce (fn [directions [dir1 dir2 opti]]
+            (let [index1 (index-of directions dir1)
+                  index2 (index-of directions dir2)]
+              (if (and index1 index2)
+                (assoc directions index1 opti index2 "")
+                directions)))
+          directions
+          optimizations))
+
+(defn optimize
+  [directions]
+  (loop [directions directions]
+    (let [optimized (optimize* directions)]
+      (if (= directions optimized)
+        (vec (remove str/blank? directions))
+        (recur optimized)))))
+
+(defn longest-distance
+  [directions]
+  (->> directions
+       (reductions #(optimize (conj %1 %2)) [])
+       (map count)
+       (apply max)))
