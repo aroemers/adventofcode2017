@@ -484,3 +484,33 @@
 (defn grid-groups
   [grid]
   (-> grid grid-graph pipe-groups count))
+
+
+;;; Day 15 - Dueling Generators
+
+(def multiplier-a 16807)
+(def multiplier-b 48271)
+
+(defn generator
+  [multiplier start]
+  (drop 1 (iterate (fn [current] (rem (* current multiplier) Integer/MAX_VALUE)) start)))
+
+(defn dividable
+  [divider]
+  (fn [n] (= (mod n divider) 0)))
+
+(defn judge
+  [start-a start-b divider-a divider-b rounds]
+  (loop [total 0
+         left  rounds
+         gen-a (filter (dividable divider-a) (generator multiplier-a start-a))
+         gen-b (filter (dividable divider-b) (generator multiplier-b start-b))]
+    (if (< 0 left)
+      (recur (cond-> total
+               (= (bit-and (first gen-a) 0xFFFF)
+                  (bit-and (first gen-b) 0xFFFF))
+               inc)
+             (dec left)
+             (rest gen-a)
+             (rest gen-b))
+      total)))

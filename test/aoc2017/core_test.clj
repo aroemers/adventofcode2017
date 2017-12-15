@@ -312,3 +312,15 @@ c inc -20 if c == 10")
   (let [grid (sut/bit-grid "flqrgnkx")]
     (is (= (sut/grid-used grid)   8108))
     (is (= (sut/grid-groups grid) 1242))))
+
+
+;;; Day 15 - Dueling Generators
+
+(deftest generator-test
+  (is (= (take 5 (sut/generator sut/multiplier-a 65))
+         [1092455 1181022009 245556042 1744312007 1352636452])))
+
+(deftest judge-test
+  (is (= (sut/judge 65 8921 1 1 5) 1))
+  (is (= (sut/judge 65 8921 1 1 40000000) 588))
+  (is (= (sut/judge 65 8921 4 8 5000000) 309)))
