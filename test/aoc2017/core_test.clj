@@ -304,3 +304,11 @@ c inc -20 if c == 10")
 
 (deftest uncaught-test
   (is (= (sut/uncaught input-13) 10)))
+
+
+;;; Day 14 - Disk Defragmentation
+
+(deftest grid-test
+  (let [grid (sut/bit-grid "flqrgnkx")]
+    (is (= (sut/grid-used grid)   8108))
+    (is (= (sut/grid-groups grid) 1242))))

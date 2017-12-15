@@ -445,3 +445,42 @@
     (if (= (severity layers delay) 0)
       delay
       (recur (inc delay)))))
+
+
+;;; Day 14 - Disk Defragmentation
+
+(defn bit-grid
+  [input]
+  (reduce (fn [acc index]
+            (conj acc (-> (str input "-" index) knot-hash-hex (BigInteger. 16))))
+          []
+          (range 128)))
+
+(defn grid-used
+  [grid]
+  (sum (map #(.bitCount %) grid)))
+
+(defn grid-graph
+  [grid]
+  (loop [graph {}
+         ys    (range 128)
+         xs    (range 128)]
+    (if-let [y (first ys)]
+      (if-let [x (first xs)]
+        (if (.testBit (grid y) x)
+          (recur (cond-> (update graph [y x] (fnil identity #{}))
+                   (and (< x 127) (.testBit (grid y) (inc x)))
+                   (-> (update [y x] (fnil conj #{}) [y (inc x)])
+                       (update [y (inc x)] (fnil conj #{}) [y x]))
+                   (and (< y 127) (.testBit (grid (inc y)) x))
+                   (-> (update [y x] (fnil conj #{}) [(inc y) x])
+                       (update [(inc y) x] (fnil conj #{}) [y x])))
+                 ys
+                 (rest xs))
+          (recur graph ys (rest xs)))
+        (recur graph (rest ys) (range 128)))
+      graph)))
+
+(defn grid-groups
+  [grid]
+  (-> grid grid-graph pipe-groups count))
