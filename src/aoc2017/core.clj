@@ -514,3 +514,60 @@
              (rest gen-a)
              (rest gen-b))
       total)))
+
+
+;;; Day 16 - Permutation Promenade
+
+(defn update-vals
+  [m f & args]
+  (reduce #(apply update %1 %2 f args) m (keys m)))
+
+(defn parse-instructions
+  [string]
+  (map (fn [instruction]
+         (case (first instruction)
+           \s {:type :spin
+               :move (Long/parseLong (subs instruction 1))}
+           \x (let [splitted (str/split (subs instruction 1) #"/")]
+                {:type       :exchange
+                 :position-a (Long/parseLong (first splitted))
+                 :position-b (Long/parseLong (second splitted))})
+           \p (let [splitted (str/split (subs instruction 1) #"/")]
+                {:type      :partner
+                 :program-a (ffirst splitted)
+                 :program-b (first (second splitted))})))
+       (str/split string #",")))
+
+(defn programs-map
+  [programs-count]
+  (zipmap (take programs-count "abcdefghijklmnop") (range)))
+
+(defn programs-map->str
+  [programs-map]
+  (apply str (map (set/map-invert programs-map) (range (count programs-map)))))
+
+(defn dance
+  [instructions programs-map]
+  (let [programs-count (count programs-map)]
+    (reduce (fn [state {:keys [type move position-a position-b program-a program-b]}]
+              (case type
+                :spin     (update-vals state #(mod (+ % move) programs-count))
+                :exchange (let [inverted (set/map-invert state)]
+                            (assoc state (inverted position-a) position-b (inverted position-b) position-a))
+                :partner  (assoc state program-a (state program-b) program-b (state program-a))))
+            programs-map
+            instructions)))
+
+(defn dance-dance
+  [instructions programs-map iterations-count]
+  (loop [iterations (next (iterate (partial dance instructions) programs-map))
+         iteration  1]
+    (if (not= (first iterations) programs-map)
+      (recur (next iterations) (inc iteration))
+      (nth iterations (mod iterations-count iteration)))))
+
+(defn solve-1 [input]
+  (-> input parse-instructions (dance (programs-map 16)) programs-map->str))
+
+(defn solve-2 [input]
+  (-> input parse-instructions (dance-dance (programs-map 16) 1000000000) programs-map->str))

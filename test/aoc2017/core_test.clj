@@ -324,3 +324,30 @@ c inc -20 if c == 10")
   (is (= (sut/judge 65 8921 1 1 5) 1))
   (is (= (sut/judge 65 8921 1 1 40000000) 588))
   (is (= (sut/judge 65 8921 4 8 5000000) 309)))
+
+
+;;; Day 16 - Permutation Promenade
+
+(deftest update-vals-test
+  (is (= (sut/update-vals {:a 1 :b 2} + 2)
+         {:a 3 :b 4})))
+
+(deftest parse-instructions-test
+  (is (= (sut/parse-instructions "s1,x3/4,pe/b")
+         [{:type :spin :move 1}
+          {:type :exchange :position-a 3 :position-b 4}
+          {:type :partner :program-a \e :program-b \b}])))
+
+(deftest programs-map-test
+  (is (= (sut/programs-map 5) {\a 0, \b 1, \c 2, \d 3, \e 4})))
+
+(deftest programs-map->str-test
+  (is (= (sut/programs-map->str {\a 0, \b 1, \c 2, \d 3, \e 4}) "abcde")))
+
+(deftest dance-test
+  (let [program-map (sut/dance (sut/parse-instructions "s1,x3/4,pe/b") (sut/programs-map 5))]
+    (is (= (sut/programs-map->str program-map) "baedc"))))
+
+(deftest dance-dance-test
+  (let [program-map (sut/dance-dance (sut/parse-instructions "s1,x3/4,pe/b") (sut/programs-map 5) 5)]
+    (is (= (sut/programs-map->str program-map) "baedc"))))
