@@ -376,3 +376,42 @@ c inc -20 if c == 10")
 
 (deftest spinlock-test
   (is (= (sut/spinlock 3 10) 9)))
+
+
+;;; Day 18 - Duet
+
+(deftest regval-test
+  (is (= (sut/regval {"a" 2} "1") 1))
+  (is (= (sut/regval {"a" 2} "a") 2))
+  (is (= (sut/regval {"a" 2} "b") 0)))
+
+(deftest parse-program-test
+  (is (= (sut/parse-program "oper a 1\noper2 b c")
+         [["oper" "a" "1"] ["oper2" "b" "c"]])))
+
+(def input-18-a
+  "set a 1
+add a 2
+mul a a
+mod a 5
+snd a
+set a 0
+rcv a
+jgz a -1
+set a 1
+jgz a -2")
+
+(deftest recover-test
+  (is (= (sut/recover input-18-a) 4)))
+
+(def input-18-b
+  "snd 1
+snd 2
+snd p
+rcv a
+rcv b
+rcv c
+rcv d")
+
+(deftest duet-test
+  (is (= (sut/duet input-18-b) [1 2 1])))

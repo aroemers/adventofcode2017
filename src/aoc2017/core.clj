@@ -596,3 +596,75 @@
     (if (< iteration iterations)
       (recur (spin-step-at step-size 1 state) (inc iteration))
       (:track-value state))))
+
+
+;;; Day 18 - Duet
+
+(defn regval
+  [registers val]
+  (try
+    (Long/parseLong val)
+    (catch Exception e
+      (get registers val 0))))
+
+(defn parse-program
+  [input]
+  (mapv #(str/split % #"\s") (str/split-lines input)))
+
+(defn program-step
+  [{:keys [program pc registers in] :as state}]
+  (let [[operand arg1 arg2] (get program pc)]
+    (merge (update state :pc inc)
+           {:waiting false
+            :out     nil}
+           (case operand
+             "snd" {:out (regval registers arg1)}
+             "set" {:registers (assoc registers arg1 (regval registers arg2))}
+             "add" {:registers (update registers arg1 (fnil + 0) (regval registers arg2))}
+             "mul" {:registers (update registers arg1 (fnil * 0) (regval registers arg2))}
+             "mod" {:registers (update registers arg1 (fnil mod 0) (regval registers arg2))}
+             "rcv" (if-let [newval (first in)]
+                     {:registers (assoc registers arg1 newval)
+                      :in        (vec (next in))}
+                     {:waiting true
+                      :pc      pc})
+             "jgz" (let [val1 (regval registers arg1)]
+                     (when (pos? val1)
+                       {:pc (+ pc (regval registers arg2))}))))))
+
+(defn recover
+  [input]
+  (let [program (parse-program input)
+        max-pc  (dec (count program))]
+    (loop [state {:program program :pc 0}
+           snd   0]
+      (if (<= 0 (:pc state) max-pc)
+        (let [[operand arg1] (get program (:pc state))]
+          (if (and (= operand "rcv")
+                   (pos? (get (:registers state) arg1)))
+            snd
+            (recur (program-step (assoc state :in [snd])) (or (:out state) snd))))
+        :exited))))
+
+(defn duet
+  [input]
+  (let [program (parse-program input)
+        max-pc  (dec (count program))]
+    (loop [state-0   {:program program :pc 0 :registers {"p" 0} :in []}
+           state-1   {:program program :pc 0 :registers {"p" 1} :in []}
+           sent-by-1 []]
+      (let [state-0-out   (:out state-0)
+            state-1-out   (:out state-1)
+            new-state-0   (if (<= 0 (:pc state-0) max-pc)
+                            (program-step (cond-> state-0 state-1-out (update :in conj state-1-out)))
+                            state-0)
+            new-state-1   (if (<= 0 (:pc state-1) max-pc)
+                            (program-step (cond-> state-1 state-0-out (update :in conj state-0-out)))
+                            state-1)
+            new-sent-by-1 (cond-> sent-by-1 state-1-out (conj state-1-out))]
+        (if (and (= state-0 new-state-0)
+                 (= state-1 new-state-1))
+          new-sent-by-1
+          (recur new-state-0
+                 new-state-1
+                 new-sent-by-1))))))
