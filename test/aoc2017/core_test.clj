@@ -351,3 +351,28 @@ c inc -20 if c == 10")
 (deftest dance-dance-test
   (let [program-map (sut/dance-dance (sut/parse-instructions "s1,x3/4,pe/b") (sut/programs-map 5) 5)]
     (is (= (sut/programs-map->str program-map) "baedc"))))
+
+
+;;; Day 17 - Spinlock
+
+(deftest spin-step-test
+  (is (= (->> {:buffer [0] :pos 0}
+              (iterate (partial sut/spin-step 3))
+              (map :buffer)
+              (take 6))
+         [[0]
+          [0 1]
+          [0 2 1]
+          [0 2 3 1]
+          [0 2 4 3 1]
+          [0 5 2 4 3 1]])))
+
+(deftest spin-step-at-test
+  (is (= (->> {:buffer-pos 0 :buffer-size 1}
+              (iterate (partial sut/spin-step-at 3 1))
+              (map :track-value)
+              (take 6))
+         [nil 1 2 2 2 5])))
+
+(deftest spinlock-test
+  (is (= (sut/spinlock 3 10) 9)))

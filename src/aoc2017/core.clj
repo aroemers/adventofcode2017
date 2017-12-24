@@ -571,3 +571,28 @@
 
 (defn solve-2 [input]
   (-> input parse-instructions (dance-dance (programs-map 16) 1000000000) programs-map->str))
+
+
+;;; Day 17 - Spinlock
+
+(defn spin-step
+  [step-size {:keys [buffer pos]}]
+  (let [buffer-size (count buffer)
+        insert-pos  (inc (mod (+ pos step-size) buffer-size))]
+    {:buffer (concat (take insert-pos buffer) [buffer-size] (drop insert-pos buffer))
+     :pos    insert-pos}))
+
+(defn spin-step-at
+  [step-size track-pos {:keys [buffer-pos buffer-size track-value]}]
+  (let [insert-pos (inc (mod (+ buffer-pos step-size) buffer-size))]
+    {:buffer-pos  insert-pos
+     :buffer-size (inc buffer-size)
+     :track-value (if (= insert-pos track-pos) buffer-size track-value)}))
+
+(defn spinlock
+  [step-size iterations]
+  (loop [state     {:buffer-pos 0 :buffer-size 1 :track-value -1}
+         iteration 0]
+    (if (< iteration iterations)
+      (recur (spin-step-at step-size 1 state) (inc iteration))
+      (:track-value state))))
