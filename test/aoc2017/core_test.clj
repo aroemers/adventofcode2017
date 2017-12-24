@@ -1,6 +1,7 @@
 (ns aoc2017.core-test
-  (:require [clojure.test :refer (deftest is are)]
-            [aoc2017.core :as sut]
+  (:require [aoc2017.core :as sut]
+            [clojure.string :as str]
+            [clojure.test :refer (deftest is are)]
             [clojure.walk :as walk]))
 
 ;;; Day 1 - Inverse Captcha
@@ -415,3 +416,48 @@ rcv d")
 
 (deftest duet-test
   (is (= (sut/duet input-18-b) [1 2 1])))
+
+
+;;; Day 19 - A Series of Tubes
+
+(def input-19
+  "     |
+     |  +--+
+     A  |  C
+ F---|----E|--+
+     |  |  |  D
+     +B-+  +--+")
+
+(deftest flip-test
+  (is (= (sut/flip 1) 0))
+  (is (= (sut/flip 0) 1)))
+
+(deftest char-at-test
+  (are [y x expected] (= (sut/char-at [" x" "y "] y x) expected)
+    0 0 nil
+    0 1 \x
+    1 0 \y
+    1 1 nil))
+
+(deftest cond-as-test
+  (is (= (sut/cond-as X
+           false :wrong
+           nil   :wrong
+           41    (inc X))
+         42)))
+
+(deftest walk-tube-test
+  (is (= (take 7 (iterate (partial sut/walk-tube (str/split-lines input-19))
+                          {:dir-y 1 :dir-x 0 :pos-y 0 :pos-x 5}))
+         [{:dir-y 1 :dir-x 0 :pos-y 0 :pos-x 5}
+          {:dir-y 1 :dir-x 0 :pos-y 1 :pos-x 5 :char \|}
+          {:dir-y 1 :dir-x 0 :pos-y 2 :pos-x 5 :char \A}
+          {:dir-y 1 :dir-x 0 :pos-y 3 :pos-x 5 :char \|}
+          {:dir-y 1 :dir-x 0 :pos-y 4 :pos-x 5 :char \|}
+          {:dir-y 1 :dir-x 0 :pos-y 5 :pos-x 5 :char \+}
+          {:dir-y 0 :dir-x 1 :pos-y 5 :pos-x 6 :char \B}])))
+
+(deftest walk-tubes-test
+  (is (= (sut/walk-tubes input-19)
+         {:route "ABCDEF"
+          :steps 38})))

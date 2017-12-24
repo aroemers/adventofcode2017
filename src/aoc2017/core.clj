@@ -668,3 +668,61 @@
           (recur new-state-0
                  new-state-1
                  new-sent-by-1))))))
+
+
+;;; Day 19 - A Series of Tubes
+
+(defn flip
+  [n]
+  (mod (inc n) 2))
+
+(defn char-at
+  [lines y x]
+  (let [ch (get (get lines y) x)]
+    (when (not= ch \space)
+      ch)))
+
+(defmacro cond-as
+  [bind & forms]
+  (assert (even? (count forms)) "uneven number of forms")
+  (if (seq forms)
+    `(if-let [~bind ~(first forms)]
+       ~(second forms)
+       (cond-as ~bind ~@(drop 2 forms)))
+    `(throw (Exception. "no matching clause"))))
+
+(defn walk-tube
+  [lines {:keys [dir-y dir-x pos-y pos-x] :as state}]
+  (cond-as X
+    (char-at lines (+ pos-y dir-y) (+ pos-x dir-x))
+    {:dir-y dir-y           :dir-x dir-x
+     :pos-y (+ pos-y dir-y) :pos-x (+ pos-x dir-x)
+     :char  X}
+
+    (char-at lines (+ pos-y (flip dir-y)) (+ pos-x (flip dir-x)))
+    {:dir-y (flip dir-y)           :dir-x (flip dir-x)
+     :pos-y (+ pos-y (flip dir-y)) :pos-x (+ pos-x (flip dir-x))
+     :char  X}
+
+    (char-at lines (- pos-y (flip dir-y)) (- pos-x (flip dir-x)))
+    {:dir-y (- (flip dir-y))       :dir-x (- (flip dir-x))
+     :pos-y (- pos-y (flip dir-y)) :pos-x (- pos-x (flip dir-x))
+     :char X}
+
+    :otherwise
+    (assoc state :dead-end true)))
+
+(defn walk-tubes
+  [input]
+  (let [lines (str/split-lines input)]
+    (loop [state {:dir-y 1 :dir-x 0
+                  :pos-y 0 :pos-x (.indexOf (first lines) "|")}
+           route ""
+           steps 0]
+      (if-not (:dead-end state)
+        (recur (walk-tube lines state)
+               (let [ch (:char state)]
+                 (cond-> route (not (#{\| \+ \-} ch)) (str ch)))
+               (inc steps))
+        {:route route
+         :steps steps}))))
